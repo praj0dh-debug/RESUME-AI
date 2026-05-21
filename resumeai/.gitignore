@@ -1,0 +1,8 @@
+.env
+cred.txt
+__pycache__/
+*.pyc
+flask-err.log
+flask-out.log
+.gemini/
+.vscode/

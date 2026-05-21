@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="ResumeAI — Build professional resumes with AI assistance. 100+ templates, smart suggestions, and instant PDF export." />
+
+  <title>ResumeAI &mdash; Smart Resume Builder</title>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Newsreader:ital,wght@0,300;0,400;0,600;1,300&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+  <!-- ═══ Figmatic Designer Workspace Wrapper ═══ -->
+  <div class="workspace">
+
+    <!-- ═══ SIDEBAR NAVIGATION (LEFT) ═══ -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">Resume<span>AI</span></div>
+
+      <nav class="sidebar-menu" id="sidebarMenu">
+        <button class="menu-item active" data-view="editor" onclick="switchView('editor', this)">
+          <span class="menu-icon">📝</span>
+          <span class="menu-label">Content</span>
+        </button>
+        <button class="menu-item" data-view="styles" onclick="switchView('styles', this)">
+          <span class="menu-icon">🎨</span>
+          <span class="menu-label">Design Customizer</span>
+        </button>
+        <button class="menu-item" data-view="templates" onclick="switchView('templates', this)">
+          <span class="menu-icon">🧩</span>
+          <span class="menu-label">100+ Templates</span>
+        </button>
+        <button class="menu-item" data-view="chat" onclick="switchView('chat', this)">
+          <span class="menu-icon">💬</span>
+          <span class="menu-label">AI Coach Chat</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="progress-wrapper">
+          <div class="progress-label">
+            <span>Completeness</span>
+            <span id="progressPct">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+          </div>
+        </div>
+        <button class="btn btn-sidebar-reset btn-xs" onclick="clearAll()">Reset Data</button>
+      </div>
+    </aside>
+
+    <!-- ═══ CONTROL PANEL DRAWER (CENTER-LEFT) ═══ -->
+    <div class="control-drawer">
+
+      <!-- ── EDITOR DRAWER VIEW ── -->
+      <div class="drawer-panel active" id="editorView">
+        <h2 class="drawer-title">Resume Editor</h2>
+        <p class="drawer-sub">Modular entries that build your dynamic CV in real-time.</p>
+
+        <div class="drawer-scroll-area" id="editorPanel">
+          <div class="section-card open" id="sec-personal" data-animate>
+            <div class="section-header" onclick="toggleSection('personal')">
+              <div class="section-title-row">
+                <span class="section-icon">&#x1F464;</span>
+                <span class="section-name">Personal Info</span>
+              </div>
+              <span class="chevron">&#x25BE;</span>
+            </div>
+            <div class="section-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Full Name</label>
+                  <input type="text" id="name" placeholder="Prajod Prakash" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                  <label>Job Title / Role</label>
+                  <input type="text" id="jobTitle" placeholder="Full Stack Developer" oninput="updatePreview()">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Email</label>
+                  <input type="email" id="email" placeholder="prajod@email.com" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                  <label>Phone</label>
+                  <input type="tel" id="phone" placeholder="+91 9876543210" oninput="updatePreview()">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Location</label>
+                  <input type="text" id="location" placeholder="Pathanamthitta, Kerala" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                  <label>LinkedIn / Portfolio</label>
+                  <input type="text" id="website" placeholder="linkedin.com/in/prajod" oninput="updatePreview()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-card" id="sec-summary" data-animate>
+            <div class="section-header" onclick="toggleSection('summary')">
+              <div class="section-title-row">
+                <span class="section-icon">&#x1F4DD;</span>
+                <span class="section-name">Professional Summary</span>
+              </div>
+              <span class="chevron">&#x25BE;</span>
+            </div>
+            <div class="section-body">
+              <div class="form-group full">
+                <label>Summary</label>
+                <textarea id="summary" placeholder="Write a short professional summary..."
+                  oninput="updatePreview()"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-card" id="sec-education" data-animate>
+            <div class="section-header" onclick="toggleSection('education')">
+              <div class="section-title-row">
+                <span class="section-icon">&#x1F393;</span>
+                <span class="section-name">Education</span>
+                <span class="section-count" id="edu-count">0</span>
+              </div>
+              <span class="chevron">&#x25BE;</span>
+            </div>
+            <div class="section-body">
+              <div id="eduList"></div>
+              <button class="add-btn" onclick="addEntry('edu')">+ Add Education</button>
+            </div>
+          </div>
+
+          <div class="section-card" id="sec-experience" data-animate>
+            <div class="section-header" onclick="toggleSection('experience')">
+              <div class="section-title-row">
+                <span class="section-icon">&#x1F4BC;</span>
+                <span class="section-name">Experience</span>
+                <span class="section-count" id="exp-count">0</span>
+              </div>
+              <span class="chevron">&#x25BE;</span>
+            </div>
+            <div class="section-body">
+              <div id="expList"></div>
+              <button class="add-btn" onclick="addEntry('exp')">+ Add Experience</button>
+            </div>
+          </div>
+
+          <div class="section-card" id="sec-projects" data-animate>
+            <div class="section-header" onclick="toggleSection('projects')">
+              <div class="section-title-row">
+                <span class="section-icon">&#x1F680;</span>
+                <span class="section-name">Projects</span>
+                <span class="section-count" id="proj-count">0</span>
+              </div>
+              <span class="chevron">&#x25BE;</span>
+            </div>
+            <div class="section-body">
+              <div id="projList"></div>
+              <button class="add-btn" onclick="addEntry('proj')">+ Add Project</button>
+            </div>
+          </div>
+
+          <div class="section-card" id="sec-skills" data-animate>
+            <div class="section-header" onclick="toggleSection('skills')">
+              <div class="section-title-row">
+                <span class="section-icon">&#x26A1;</span>
+                <span class="section-name">Skills</span>
+                <span class="section-count" id="skill-count">0</span>
+              </div>
+              <span class="chevron">&#x25BE;</span>
+            </div>
+            <div class="section-body">
+              <div class="skills-grid" id="skillsGrid"></div>
+              <div class="skill-input-row">
+                <input type="text" id="skillInput" placeholder="React, Python, Flask..."
+                  onkeydown="skillKeydown(event)">
+                <button class="btn btn-ghost" onclick="addSkill()">Add</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-card" id="sec-achievements" data-animate>
+            <div class="section-header" onclick="toggleSection('achievements')">
+              <div class="section-title-row">
+                <span class="section-icon">&#x1F3C6;</span>
+                <span class="section-name">Achievements / Certifications</span>
+              </div>
+              <span class="chevron">&#x25BE;</span>
+            </div>
+            <div class="section-body">
+              <div class="form-group full">
+                <label>Achievements</label>
+                <textarea id="achievements" placeholder="&#x2022; Python certification&#10;&#x2022; Hackathon winner"
+                  oninput="updatePreview()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STYLES CUSTOMIZER DRAWER VIEW ── -->
+      <div class="drawer-panel" id="stylesView">
+        <h2 class="drawer-title">Design Customizer</h2>
+        <p class="drawer-sub">Tweak typography, colors, padding, and borders live.</p>
+
+        <div class="drawer-scroll-area">
+          <div class="style-group-card">
+            <h3 class="style-card-title">Color Palette</h3>
+            <div class="color-picker-grid">
+              <div class="color-picker-item">
+                <label title="Main Accent Color">Accent 1</label>
+                <input type="color" id="custAccent" value="#4f46e5" oninput="customStyleChanged()">
+              </div>
+              <div class="color-picker-item">
+                <label title="Secondary Accent Color">Accent 2</label>
+                <input type="color" id="custAccent2" value="#818cf8" oninput="customStyleChanged()">
+              </div>
+              <div class="color-picker-item">
+                <label title="Primary Text Color">Body Text</label>
+                <input type="color" id="custText" value="#1a1a18" oninput="customStyleChanged()">
+              </div>
+              <div class="color-picker-item">
+                <label title="Paper Background Color">Paper BG</label>
+                <input type="color" id="custPaperBg" value="#ffffff" oninput="customStyleChanged()">
+              </div>
+              <div class="color-picker-item">
+                <label title="Header Background Color">Header BG</label>
+                <input type="color" id="custHeaderBg" value="#ffffff" oninput="customStyleChanged()">
+              </div>
+              <div class="color-picker-item">
+                <label title="Header Text Color">Header Text</label>
+                <input type="color" id="custHeaderText" value="#111110" oninput="customStyleChanged()">
+              </div>
+            </div>
+          </div>
+
+          <div class="style-group-card">
+            <h3 class="style-card-title">Typography & Spacing</h3>
+
+            <div class="form-group full" style="margin-bottom: 14px;">
+              <label title="Select Font Stack">Font Family</label>
+              <select id="custFont" onchange="customStyleChanged()" style="width: 100%; height: 36px; padding: 0 10px;">
+                <optgroup label="Sans-Serif (Modern & Clean)">
+                  <option value="DM Sans" selected>DM Sans</option>
+                  <option value="Inter">Inter</option>
+                  <option value="Poppins">Poppins</option>
+                  <option value="Outfit">Outfit</option>
+                  <option value="Montserrat">Montserrat</option>
+                  <option value="Figtree">Figtree</option>
+                  <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
+                  <option value="Manrope">Manrope</option>
+                  <option value="Work Sans">Work Sans</option>
+                </optgroup>
+                <optgroup label="Serif (Elegant & Classic)">
+                  <option value="Newsreader">Newsreader</option>
+                  <option value="EB Garamond">EB Garamond</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Playfair Display">Playfair Display</option>
+                  <option value="Lora">Lora</option>
+                  <option value="Cormorant Garamond">Cormorant Garamond</option>
+                  <option value="Bitter">Bitter</option>
+                  <option value="Noto Serif">Noto Serif</option>
+                </optgroup>
+                <optgroup label="Monospace (Technical)">
+                  <option value="Space Mono">Space Mono</option>
+                  <option value="JetBrains Mono">JetBrains Mono</option>
+                  <option value="Fira Code">Fira Code</option>
+                  <option value="IBM Plex Mono">IBM Plex Mono</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <div class="style-slider-item">
+              <div class="slider-header">
+                <label title="Adjust Font Size">Font Size</label>
+                <span class="val-lbl" id="fontSizeVal">0.8rem</span>
+              </div>
+              <input type="range" id="custFontSize" min="0.7" max="0.95" step="0.01" value="0.8"
+                oninput="customStyleChanged()">
+            </div>
+
+            <div class="style-slider-item">
+              <div class="slider-header">
+                <label title="Adjust Line Height">Line Spacing</label>
+                <span class="val-lbl" id="lineHeightVal">1.55</span>
+              </div>
+              <input type="range" id="custLineHeight" min="1.3" max="1.8" step="0.05" value="1.55"
+                oninput="customStyleChanged()">
+            </div>
+          </div>
+
+          <div class="style-group-card">
+            <h3 class="style-card-title">Borders & Accent Rules</h3>
+
+            <div class="form-group full" style="margin-bottom: 14px;">
+              <label title="Border Dividers">Divider Style</label>
+              <select id="custDivider" onchange="customStyleChanged()"
+                style="width: 100%; height: 36px; padding: 0 10px;">
+                <option value="solid">Solid Line</option>
+                <option value="double">Double Line</option>
+                <option value="dashed">Dashed Line</option>
+                <option value="dotted">Dotted Line</option>
+                <option value="thick">Thick Accent</option>
+                <option value="none">No Dividers</option>
+              </select>
+            </div>
+
+            <div class="color-picker-item full-row" style="margin-bottom: 16px;">
+              <label title="Divider Border Color">Divider Line Color</label>
+              <input type="color" id="custDividerColor" value="#e4e4e0" oninput="customStyleChanged()">
+            </div>
+
+            <button class="btn btn-ghost btn-block btn-xs" onclick="resetToTemplateDefaults()">
+              &#x21BB; Revert Defaults
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TEMPLATES DRAWER VIEW ── -->
+      <div class="drawer-panel" id="templatesView">
+        <h2 class="drawer-title">Template Library</h2>
+        <p class="drawer-sub">Select from 100 dynamic structural templates to match your industry.</p>
+
+        <div class="drawer-scroll-area">
+          <div class="category-pills" id="categoryPills"></div>
+          <div class="template-grid" id="templateGrid"></div>
+        </div>
+      </div>
+
+      <!-- ── AI CHAT DRAWER VIEW ── -->
+      <div class="drawer-panel" id="chatView">
+        <div class="chat-header-bar">
+          <div class="ai-badge">AI Assistant</div>
+          <div class="chat-headline">Your Resume Coach</div>
+          <div class="chat-subline">Describe your credentials and watch AI fill out your fields.</div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages"></div>
+
+        <div class="chat-input-area">
+          <textarea class="chat-input" id="chatInput" placeholder="e.g. I'm a CS student who interned at TCS..."
+            rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()">&#x27A4;</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══ WORKSPACE DRAFTING CANVAS (RIGHT) ═══ -->
+    <main class="workspace-canvas" id="previewPanel">
+
+      <!-- Canvas Top Header Actions -->
+      <div class="canvas-topbar">
+        <div class="active-layout-badge">
+          <span class="badge-dot"></span>
+          Active Layout: <strong id="currentLayoutName">Modern Layout</strong>
+        </div>
+
+        <div class="canvas-actions">
+          <span class="status-badge">
+            <span class="status-dot"></span>AI Online
+          </span>
+          <button class="btn btn-ghost btn-sm" onclick="downloadJSON()">Export JSON</button>
+          <button class="btn btn-primary btn-sm btn-export-pdf" onclick="downloadPDF()">Download PDF</button>
+        </div>
+      </div>
+
+      <!-- Live Zoomable Canvas Paper Container -->
+      <div class="canvas-paper-wrapper" id="canvasPaperWrapper">
+        <div class="resume-paper" id="resumePaper">
+
+          <div class="rv-header">
+            <div class="rv-name" id="rv-name">Your Name</div>
+            <div class="rv-title" id="rv-title">Job Title</div>
+            <div class="rv-contact" id="rv-contact">
+              <span>&#x1F4E7; your@email.com</span>
+              <span>&#x1F4F1; Phone</span>
+              <span>&#x1F4CD; Location</span>
+            </div>
+          </div>
+
+          <div class="rv-section rv-sec-summary">
+            <div class="rv-section-title">Summary</div>
+            <div class="rv-summary rv-empty" id="rv-summary">Add a summary...</div>
+          </div>
+
+          <div class="rv-section rv-sec-education">
+            <div class="rv-section-title">Education</div>
+            <div id="rv-edu-list">
+              <p class="rv-empty">No education added yet</p>
+            </div>
+          </div>
+
+          <div class="rv-section rv-sec-experience">
+            <div class="rv-section-title">Experience</div>
+            <div id="rv-exp-list">
+              <p class="rv-empty">No experience added yet</p>
+            </div>
+          </div>
+
+          <div class="rv-section rv-sec-projects">
+            <div class="rv-section-title">Projects</div>
+            <div id="rv-proj-list">
+              <p class="rv-empty">No projects added yet</p>
+            </div>
+          </div>
+
+          <div class="rv-section rv-sec-skills">
+            <div class="rv-section-title">Skills</div>
+            <div class="rv-skills rv-empty" id="rv-skills">Add skills...</div>
+          </div>
+
+          <div class="rv-section rv-sec-achievements">
+            <div class="rv-section-title">Achievements & Certifications</div>
+            <div class="rv-entry-desc rv-empty" id="rv-achievements">No achievements added yet</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Floating Zoom Controls -->
+      <div class="zoom-widget">
+        <button class="zoom-btn" onclick="adjustZoom(-0.05)" title="Zoom Out">−</button>
+        <span class="zoom-label" id="zoomPct">85%</span>
+        <button class="zoom-btn" onclick="adjustZoom(0.05)" title="Zoom In">+</button>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ═══ FLOATING ASSISTANT BUTTON ═══ -->
+  <button class="fab-assistant" id="fabAssistant" onclick="toggleAssistant()">
+    <span class="fab-icon">&#x1F4A1;</span>
+    <span class="fab-pulse"></span>
+  </button>
+
+  <!-- ═══ ASSISTANT POPUP ═══ -->
+  <div class="assistant-popup" id="assistantPopup">
+    <div class="assistant-popup-header">
+      <span class="assistant-popup-title">Quick Help</span>
+      <button class="assistant-close" onclick="toggleAssistant()">&times;</button>
+    </div>
+    <div class="assistant-popup-body">
+      <p class="assistant-greeting">Need help building your resume? Try these:</p>
+      <div class="assistant-actions">
+        <button class="assistant-action" onclick="assistantAction('chat', 'Help me write a professional summary')">
+          <span>&#x1F4DD;</span> Write my summary
+        </button>
+        <button class="assistant-action" onclick="assistantAction('chat', 'Suggest skills for a software developer')">
+          <span>&#x26A1;</span> Suggest skills
+        </button>
+        <button class="assistant-action" onclick="assistantAction('chat', 'Help me describe my internship experience')">
+          <span>&#x1F4BC;</span> Describe experience
+        </button>
+        <button class="assistant-action" onclick="assistantAction('chat', 'Make my resume more impactful')">
+          <span>&#x1F680;</span> Improve resume
+        </button>
+        <button class="assistant-action" onclick="assistantAction('templates')">
+          <span>&#x1F3A8;</span> Browse templates
+        </button>
+        <button class="assistant-action" onclick="assistantAction('editor')">
+          <span>&#x270F;&#xFE0F;</span> Edit resume
+        </button>
+      </div>
+      <div class="assistant-tip">
+        <strong>Tip:</strong> Use the AI Chat to describe yourself naturally — it auto-fills your resume!
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="{{ url_for('static', filename='templates.js') }}"></script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</body>
+
+</html>
